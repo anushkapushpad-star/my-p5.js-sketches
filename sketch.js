@@ -10,23 +10,16 @@ function setup() {
   colorMode(HSB, 360, 100, 100, 100);
 }
 
-function mouseMoved() {
-  if (!isStarted) startAudio();
-  updateAudio();
-}
-
 function mousePressed() {
   if (!isStarted) startAudio();
 }
 
 function updateAudio() {
   if (!isStarted) return;
-
   let volVal = map(mouseY, height, 0, -60, 0);
   if (mouseY > height - 10) volVal = -Infinity;
   currentVolume = volVal;
   if (vol) vol.volume.rampTo(currentVolume, 0.3);
-
   currentPitchShift = map(mouseX, 0, width, -12, 12);
 }
 
@@ -68,11 +61,8 @@ async function startAudio() {
     centerIdx = constrain(centerIdx, 2, allNotes.length - 3);
     let offset = (step % 5) - 2;
     let noteIdx = constrain(centerIdx + offset, 0, allNotes.length - 1);
-    let note = allNotes[noteIdx];
-
-    synth.triggerAttackRelease(note, '2n', time);
+    synth.triggerAttackRelease(allNotes[noteIdx], '2n', time);
     filter.frequency.rampTo(map(mouseY, height, 0, 300, 5000), 0.5);
-
     if (step % 4 === 0) {
       drone.releaseAll();
       if (mouseX < width / 3) {
@@ -96,7 +86,6 @@ function draw() {
   let hueShift = map(mouseX, 0, width, 0, 360);
   let bright   = map(mouseY, 0, height, 100, 30);
   currentBright = bright;
-
   if (isStarted) updateAudio();
 
   function c(h, s, b) {
@@ -240,13 +229,28 @@ function draw() {
 
   // ---- HUD ----
   colorMode(RGB);
-  fill(255, 255, 255, 160);
-  noStroke();
-  rect(10, height - 30, 310, 22, 5);
-  fill(40);
-  textSize(11);
-  textAlign(LEFT, CENTER);
   let volPercent = constrain(Math.round(map(mouseY, height, 0, 0, 100)), 0, 100);
-  text(`Volume: ${volPercent}%   |   Pitch: ${mouseX < width/3 ? 'Low ◀' : mouseX < (width*2)/3 ? '▶ Mid ◀' : '▶ High'}`, 18, height - 19);
+
+  // Show click-to-start overlay before audio begins
+  if (!isStarted) {
+    fill(0, 0, 0, 160);
+    rect(0, 0, width, height);
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textSize(28);
+    text('🎵 Click anywhere to start', width / 2, height / 2 - 20);
+    textSize(14);
+    fill(200);
+    text('Move mouse left/right → pitch   |   up/down → volume', width / 2, height / 2 + 20);
+  } else {
+    fill(255, 255, 255, 160);
+    noStroke();
+    rect(10, height - 30, 310, 22, 5);
+    fill(40);
+    textSize(11);
+    textAlign(LEFT, CENTER);
+    text(`Volume: ${volPercent}%   |   Pitch: ${mouseX < width/3 ? 'Low ◀' : mouseX < (width*2)/3 ? '▶ Mid ◀' : '▶ High'}`, 18, height - 19);
+  }
+
   colorMode(HSB, 360, 100, 100, 100);
 }
